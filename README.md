@@ -8,7 +8,7 @@ Add the dependency to your build.gradle
 
 ```
 dependencies {
-    compile 'org.consenlabs:tokencore:<latest_version>'
+    compile 'org.consenlabs:tokencore-core-android:<latest_version>'
 }
 ```
 
