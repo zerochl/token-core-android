@@ -158,13 +158,11 @@ public class EOSWalletTest extends WalletSupport {
     Assert.assertNotSame(0L, wallet.getCreatedAt());
     Assert.assertTrue(Strings.isNullOrEmpty(wallet.getAddress()));
     List<String> expectedPubKeys = new ArrayList<>();
-    expectedPubKeys.add("EOS7tpXQ1thFJ69ZXDqqEan7GMmuWdcptKmwgbs7n1cnx3hWPw3jw");
-    expectedPubKeys.add("EOS5SxZMjhKiXsmjxac8HBx56wWdZV1sCLZESh3ys1rzbMn4FUumU");
+
     expectedPubKeys.add("EOS88XhiiP7Cu5TmAUJqHbyuhyYgd6sei68AU266PyetDDAtjmYWF");
     List<String> publicKeys = new ArrayList<>(2);
     publicKeys.add(wallet.getKeyPathPrivates().get(0).getPublicKey());
-    publicKeys.add(wallet.getKeyPathPrivates().get(1).getPublicKey());
-    publicKeys.add(wallet.getKeyPathPrivates().get(2).getPublicKey());
+
     Assert.assertTrue(Arrays.equals(expectedPubKeys.toArray(), publicKeys.toArray()));
 
   }
@@ -409,103 +407,5 @@ public class EOSWalletTest extends WalletSupport {
     Assert.assertEquals(PUBLIC_KEY, keyPair.getPublicKey());
   }
 
-  @Test
-  public void testMigrationFromExistKeystore() {
-    String walletID = "5776d691-6a29-4111-81b1-9c3b053b9eaf";
-    String keystoreFileName = walletID + ".json";
-    URL url = getClass().getClassLoader().getResource("eos_migration_keystore");
-    try {
-      File testFile = new File(url.getPath(), keystoreFileName);
-      File destFile = new File(WalletSupport.KEYSTORE_DIR, keystoreFileName);
-      Files.copy(testFile, destFile);
-    } catch (IOException e) {
-      Assert.fail("Prepare test file failed");
-      e.printStackTrace();
-    }
-    WalletManager.scanWallets();
-    Wallet wallet = WalletManager.migrateEOSDerivingToMnemonicPath(walletID, "11111111", "");
-    List<EOSKeystore.KeyPathPrivate> keyPathPrivates = wallet.getKeyPathPrivates();
-    Assert.assertEquals(3, keyPathPrivates.size());
-    Assert.assertEquals(BIP44Util.EOS_LEDGER, wallet.exportMnemonic("11111111").getPath());
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(0).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(0).getPath());
-    Assert.assertEquals("EOS6ATRYTiYK3pguimUuZJPu8UGXvHnhjD1qcEXCj3vbbq7SHRvpA", keyPathPrivates.get(0).getPublicKey());
 
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(1).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(1).getPath());
-    Assert.assertEquals("EOS8EhtUqZ9WaNuJHsXmcUzD5nh9zp5ZqQpAg73KoNKMGnkwj9B8A", keyPathPrivates.get(1).getPublicKey());
-
-    Assert.assertEquals("PATH_DIRECTLY", keyPathPrivates.get(2).getDerivedMode());
-    Assert.assertEquals("m/44'/194'/0'/0/0", keyPathPrivates.get(2).getPath());
-    Assert.assertEquals("EOS4xncXFMksjQdFEisPNsBYN7S1z7ocyZK3PpnfcqM4E6i9SDatJ", keyPathPrivates.get(2).getPublicKey());
-  }
-
-  @Test
-  public void testMigrationInterface() {
-    String walletID = "5776d691-6a29-4111-81b1-9c3b053b9eaf";
-    String keystoreFileName = walletID + ".json";
-    URL url = getClass().getClassLoader().getResource("eos_migration_keystore");
-    try {
-      File testFile = new File(url.getPath(), keystoreFileName);
-      File destFile = new File(WalletSupport.KEYSTORE_DIR, keystoreFileName);
-      Files.copy(testFile, destFile);
-    } catch (IOException e) {
-      Assert.fail("Prepare test file failed");
-      e.printStackTrace();
-    }
-    WalletManager.scanWallets();
-    try {
-      Wallet wallet = WalletManager.migrateEOSDerivingToMnemonicPath(walletID, "22222222", "");
-      Assert.fail("Should throw exception");
-    } catch (TokenException ex) {
-      Assert.assertEquals(ex.getMessage(), Messages.WALLET_INVALID_PASSWORD);
-    }
-
-    Wallet wallet = WalletManager.migrateEOSDerivingToMnemonicPath(walletID, "11111111", "");
-    // test migrate multi times
-    wallet = WalletManager.migrateEOSDerivingToMnemonicPath(walletID, "11111111", "");
-
-    List<EOSKeystore.KeyPathPrivate> keyPathPrivates = wallet.getKeyPathPrivates();
-    Assert.assertEquals(BIP44Util.EOS_LEDGER, wallet.exportMnemonic("11111111").getPath());
-    Assert.assertEquals(3, keyPathPrivates.size());
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(0).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(0).getPath());
-    Assert.assertEquals("EOS6ATRYTiYK3pguimUuZJPu8UGXvHnhjD1qcEXCj3vbbq7SHRvpA", keyPathPrivates.get(0).getPublicKey());
-
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(1).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(1).getPath());
-    Assert.assertEquals("EOS8EhtUqZ9WaNuJHsXmcUzD5nh9zp5ZqQpAg73KoNKMGnkwj9B8A", keyPathPrivates.get(1).getPublicKey());
-
-    Assert.assertEquals("PATH_DIRECTLY", keyPathPrivates.get(2).getDerivedMode());
-    Assert.assertEquals("m/44'/194'/0'/0/0", keyPathPrivates.get(2).getPath());
-    Assert.assertEquals("EOS4xncXFMksjQdFEisPNsBYN7S1z7ocyZK3PpnfcqM4E6i9SDatJ", keyPathPrivates.get(2).getPublicKey());
-  }
-
-  @Test
-  public void testMigrationOnDoesnotExistKeystore() {
-    Metadata metadata = new Metadata();
-    metadata.setSource(Metadata.FROM_MNEMONIC);
-    metadata.setChainType(ChainType.BITCOIN);
-    metadata.setNetwork(Network.MAINNET);
-    metadata.setSegWit(Metadata.P2WPKH);
-    String mnemonic = "process huge current deer glass witness cake emerge avocado network shine ethics";
-    Identity identity = Identity.recoverIdentity(mnemonic, "xyz", SampleKey.PASSWORD, "", Network.MAINNET, Metadata.P2WPKH);
-    Wallet wallet = identity.deriveWallets(Collections.singletonList("EOS"), SampleKey.PASSWORD).get(0);
-
-
-    List<EOSKeystore.KeyPathPrivate> keyPathPrivates = wallet.getKeyPathPrivates();
-    Assert.assertEquals(BIP44Util.EOS_LEDGER, wallet.exportMnemonic(SampleKey.PASSWORD).getPath());
-    Assert.assertEquals(3, keyPathPrivates.size());
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(0).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(0).getPath());
-    Assert.assertEquals("EOS6ATRYTiYK3pguimUuZJPu8UGXvHnhjD1qcEXCj3vbbq7SHRvpA", keyPathPrivates.get(0).getPublicKey());
-
-    Assert.assertEquals("HD_SHA256", keyPathPrivates.get(1).getDerivedMode());
-    Assert.assertEquals("", keyPathPrivates.get(1).getPath());
-    Assert.assertEquals("EOS8EhtUqZ9WaNuJHsXmcUzD5nh9zp5ZqQpAg73KoNKMGnkwj9B8A", keyPathPrivates.get(1).getPublicKey());
-
-    Assert.assertEquals("PATH_DIRECTLY", keyPathPrivates.get(2).getDerivedMode());
-    Assert.assertEquals("m/44'/194'/0'/0/0", keyPathPrivates.get(2).getPath());
-    Assert.assertEquals("EOS4xncXFMksjQdFEisPNsBYN7S1z7ocyZK3PpnfcqM4E6i9SDatJ", keyPathPrivates.get(2).getPublicKey());
-  }
 }
