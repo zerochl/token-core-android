@@ -125,12 +125,12 @@ public class EOSWalletTest extends WalletSupport {
   public void eosSignTransactions() {
 
     // import eos wallet
-    Wallet wallet = WalletManager.importWalletFromMnemonic(eosMetadata(), SampleKey.MNEMONIC, BIP44Util.EOS_PATH, SampleKey.PASSWORD, true);
+    Wallet wallet = WalletManager.importWalletFromMnemonic(eosMetadata(), SampleKey.MNEMONIC, BIP44Util.EOS_LEDGER, SampleKey.PASSWORD, true);
 
     // construct  to sign objects
     List<EOSTransaction.ToSignObj> toSignObjs = new ArrayList<>();
     EOSTransaction.ToSignObj toSignObj = new EOSTransaction.ToSignObj();
-    toSignObj.setPublicKeys(Collections.singletonList("EOS5SxZMjhKiXsmjxac8HBx56wWdZV1sCLZESh3ys1rzbMn4FUumU"));
+    toSignObj.setPublicKeys(Collections.singletonList("EOS88XhiiP7Cu5TmAUJqHbyuhyYgd6sei68AU266PyetDDAtjmYWF"));
     toSignObj.setTxHex("c578065b93aec6a7c811000000000100a6823403ea3055000000572d3ccdcd01000000602a48b37400000000a8ed323225000000602a48b374208410425c95b1ca80969800000000000453595300000000046d656d6f00");
     toSignObjs.add(toSignObj);
 
@@ -140,7 +140,7 @@ public class EOSWalletTest extends WalletSupport {
 
     TxMultiSignResult actualResult = signResults.get(0);
     Assert.assertEquals(1, actualResult.getSigned().size());
-    Assert.assertEquals("SIG_K1_KkCTdqnTztAPnYeB2TWhrqcDhnnLvFJJdXnFCE3g8jRyz2heCggDQt5bMABu4LawHaDy4taHwJR3XMKV2ZXnBWqyiBnQ9J", actualResult.getSigned().get(0));
+    Assert.assertEquals("SIG_K1_KjZXm86HMVyUd59E15pCkrpn5uUPAAsjTxjEVRRueEvGciinxRS3sATmEEWdkb8hRNHhf6SXofsz4qzPdD6mfZ67FoqLxh", actualResult.getSigned().get(0));
     Assert.assertEquals("6af5b3ae9871c25e2de195168ed7423f455a68330955701e327f02276bb34088", actualResult.getTxHash());
 
   }
@@ -171,14 +171,10 @@ public class EOSWalletTest extends WalletSupport {
   public void importEOSWalletByMnemonicMultiPermissions() {
     List<EOSKeystore.PermissionObject> permissionObjects = new ArrayList<>();
     EOSKeystore.PermissionObject permObj = new EOSKeystore.PermissionObject();
-    permObj.setPublicKey("EOS7tpXQ1thFJ69ZXDqqEan7GMmuWdcptKmwgbs7n1cnx3hWPw3jw");
-    permObj.setPermission("owner");
-    permissionObjects.add(permObj);
-
-    permObj = new EOSKeystore.PermissionObject();
-    permObj.setPublicKey("EOS5SxZMjhKiXsmjxac8HBx56wWdZV1sCLZESh3ys1rzbMn4FUumU");
+    permObj.setPublicKey("EOS88XhiiP7Cu5TmAUJqHbyuhyYgd6sei68AU266PyetDDAtjmYWF");
     permObj.setPermission("active");
     permissionObjects.add(permObj);
+
 //
 //    permObj = new EOSKeystore.PermissionObject();
 //    permObj.setPublicKey("EOS7uUZkJKheG9Ag5C1TA78LX74fWY28sBEfFjP49Cae8Ski7cvVR");
@@ -186,15 +182,11 @@ public class EOSWalletTest extends WalletSupport {
 //    permissionObjects.add(permObj);
 
     Wallet wallet = WalletManager.importWalletFromMnemonic(eosMetadata(), ACCOUNT_NAME, SampleKey.MNEMONIC, BIP44Util.EOS_LEDGER, permissionObjects, SampleKey.PASSWORD, true);
-    Assert.assertEquals(3, wallet.getKeyPathPrivates().size());
-    List<String> expectedPubKeys = new ArrayList<>(3);
-    expectedPubKeys.add("EOS7tpXQ1thFJ69ZXDqqEan7GMmuWdcptKmwgbs7n1cnx3hWPw3jw");
-    expectedPubKeys.add("EOS5SxZMjhKiXsmjxac8HBx56wWdZV1sCLZESh3ys1rzbMn4FUumU");
+    Assert.assertEquals(1, wallet.getKeyPathPrivates().size());
+    List<String> expectedPubKeys = new ArrayList<>();
     expectedPubKeys.add("EOS88XhiiP7Cu5TmAUJqHbyuhyYgd6sei68AU266PyetDDAtjmYWF");
     List<String> publicKeys = new ArrayList<>(3);
     publicKeys.add(wallet.getKeyPathPrivates().get(0).getPublicKey());
-    publicKeys.add(wallet.getKeyPathPrivates().get(1).getPublicKey());
-    publicKeys.add(wallet.getKeyPathPrivates().get(2).getPublicKey());
     Assert.assertTrue(Arrays.equals(expectedPubKeys.toArray(), publicKeys.toArray()));
   }
 
@@ -299,9 +291,8 @@ public class EOSWalletTest extends WalletSupport {
   public void exportWalletPrvKeys() {
     Wallet wallet = WalletManager.importWalletFromMnemonic(eosMetadata(), SampleKey.MNEMONIC, BIP44Util.EOS_LEDGER, SampleKey.PASSWORD, true);
     List<KeyPair> prvKeys = WalletManager.exportPrivateKeys(wallet.getId(), SampleKey.PASSWORD);
-    List<KeyPair> expectedPrvKeys = new ArrayList<>(2);
-    expectedPrvKeys.add(new KeyPair("5J8FtzsEtGp2U76RiFiMmbFok9m8ERbGXzsJHZEE8sE1eQxh66c", "EOS7tpXQ1thFJ69ZXDqqEan7GMmuWdcptKmwgbs7n1cnx3hWPw3jw"));
-    expectedPrvKeys.add(new KeyPair("5HxCPyJqNWMGWCQSmRHQKvQoYv5snWKWiciFhuGrcM5P64QLhA6", "EOS5SxZMjhKiXsmjxac8HBx56wWdZV1sCLZESh3ys1rzbMn4FUumU"));
+    List<KeyPair> expectedPrvKeys = new ArrayList<>();
+
     expectedPrvKeys.add(new KeyPair("5KAigHMamRhN7uwHFnk3yz7vUTyQT1nmXoAA899XpZKJpkqsPFp", "EOS88XhiiP7Cu5TmAUJqHbyuhyYgd6sei68AU266PyetDDAtjmYWF"));
 
     Assert.assertTrue(Arrays.equals(prvKeys.toArray(), expectedPrvKeys.toArray()));
